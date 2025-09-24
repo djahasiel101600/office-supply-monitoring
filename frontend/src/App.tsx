@@ -28,7 +28,6 @@ function App() {
   const [loggedInStatus, setLoggedInStatus] = useState(false);
   useEffect(() => {
     auth?.user ? setLoggedInStatus(true) : setLoggedInStatus(false);
-    alert(auth?.user);
   }, [auth]);
   return (
     <ThemeProvider theme={theme}>
