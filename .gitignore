@@ -45,6 +45,7 @@ backend/db.sqlite3
 backend/media/
 backend/staticfiles/
 backend/static_root/
+backend/supplies/migrations/
 
 # Environment
 backend/.env
