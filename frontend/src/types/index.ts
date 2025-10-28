@@ -38,3 +38,11 @@ export interface SupplyTransaction {
   date: string;
   created_at: string;
 }
+
+export interface Token {
+  token_type: string;
+  exp: number;
+  iat: number;
+  jti: number;
+  user_id: number;
+}

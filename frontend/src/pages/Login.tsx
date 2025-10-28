@@ -24,7 +24,7 @@ const Login: React.FC = () => {
 
     try {
       let hostname = window.location.hostname;
-      const response = await axios.post(`http://${hostname}:8000/api/token/`, {
+      const response = await axios.post(`http://${hostname}:8005/api/token/`, {
         username,
         password,
       });

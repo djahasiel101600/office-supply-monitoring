@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useState, useEffect, ReactNode } from "react";
 import axios from "axios";
 import * as jwt_decode from "jwt-decode";
 
@@ -17,6 +17,7 @@ interface DecodedToken {
   exp: number;
   iat: number;
 }
+
 interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<void>;
@@ -28,24 +29,26 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  // Helper: decode JWT into user object
   const decodeToken = (token: string): User | null => {
     try {
       const decoded = jwt_decode.jwtDecode<DecodedToken>(token);
+      const currentTime = Date.now() / 1000;
+      if (decoded.exp < currentTime) {
+        return null; // expired
+      }
       return {
         id: decoded.user_id,
         username: decoded.username,
         is_staff: decoded.is_staff,
         is_superuser: decoded.is_superuser,
       };
-    } catch (e) {
-      console.error("Invalid token", e);
+    } catch {
       return null;
     }
   };
 
   const login = async (username: string, password: string): Promise<void> => {
-    const res = await axios.post("http://localhost:8000/api/token/", {
+    const res = await axios.post("http://localhost:8005/api/token/", {
       username,
       password,
     });
@@ -58,6 +61,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(decodedUser);
   };
 
+  const refreshAccessToken = async (): Promise<User | null> => {
+    const refresh = localStorage.getItem("refresh_token");
+    if (!refresh) return null;
+    try {
+      const res = await axios.post("http://localhost:8005/api/token/refresh/", {
+        refresh,
+      });
+      const { access } = res.data as { access: string };
+      localStorage.setItem("access_token", access);
+      return decodeToken(access);
+    } catch (err) {
+      console.error("Failed to refresh token", err);
+      logout();
+      return null;
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
@@ -65,15 +85,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (token) {
-      const decodedUser = decodeToken(token);
-      if (decodedUser) {
-        setUser(decodedUser);
+    const bootstrapAuth = async () => {
+      const access = localStorage.getItem("access_token");
+      if (access) {
+        const decodedUser = decodeToken(access);
+        if (decodedUser) {
+          setUser(decodedUser);
+          return;
+        }
+      }
+      // try refreshing if access is missing/invalid
+      const refreshedUser = await refreshAccessToken();
+      if (refreshedUser) {
+        setUser(refreshedUser);
       } else {
         logout();
       }
-    }
+    };
+
+    bootstrapAuth();
   }, []);
 
   return (

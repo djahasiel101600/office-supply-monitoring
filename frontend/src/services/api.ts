@@ -2,7 +2,7 @@ import axios from "axios";
 import { User, SupplyCategory, Supply, SupplyTransaction } from "../types";
 
 let hostname = window.location.hostname;
-const API_BASE_URL = `http://${hostname}:8000/api`;
+const API_BASE_URL = `http://${hostname}:8005/api`;
 
 const api = axios.create({
   baseURL: API_BASE_URL,

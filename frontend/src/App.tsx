@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -25,22 +24,21 @@ const theme = createTheme({
 
 function App() {
   const auth = useContext(AuthContext);
-  const [loggedInStatus, setLoggedInStatus] = useState(false);
-  useEffect(() => {
-    auth?.user ? setLoggedInStatus(true) : setLoggedInStatus(false);
-  }, [auth]);
+  const loggedInStatus = !!auth?.user?.id;
+  console.log("Auth", loggedInStatus)
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
         <Routes>
           {/* Public route */}
-          <Route path="/login" element={<Login />} />
+          {!loggedInStatus && <Route path="/login" element={<Login />} />}
           {/* Protected routes */}
           <Route
             path="/*"
             element={
-              loggedInStatus === true ? (
+              loggedInStatus ? (
                 <Layout>
                   <Routes>
                     <Route path="/" element={<Dashboard />} />

@@ -1,0 +1,22 @@
+version: "3.8"
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8002:8000" # Changed to 8002
+    volumes:
+      - "./backend:/app"
+    command: python manage.py runserver 0.0.0.0:8000
+
+  frontend:
+    build:
+      context: ./frontend
+      target: build
+    ports:
+      - "3002:3000" # Changed to 3002
+    volumes:
+      - "./frontend:/app"
+      - "/app/node_modules"
+    command: npm start
+    environment:
+      - REACT_APP_API_URL=http://localhost:8002/api # Updated to 8002
